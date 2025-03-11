@@ -1,34 +1,45 @@
-// src/screens/HomeScreen.tsx
 import React, { useState, useEffect } from "react";
-import { Button, StyleSheet, Text, View, FlatList } from "react-native";
+import { View, Text, Button, FlatList, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const HomeScreen = ({ navigation }: any) => {
-  const [musicList, setMusicList] = useState<string[]>([]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
+  // Carregar músicas salvas no AsyncStorage quando a tela for carregada
   useEffect(() => {
-    const loadMusicList = async () => {
-      try {
-        const savedMusicList = await AsyncStorage.getItem("@musicList");
-        if (savedMusicList) {
-          setMusicList(JSON.parse(savedMusicList));
-        }
-      } catch (err) {
-        console.log(err);
+    const loadSavedMusic = async () => {
+      const savedMusic = await AsyncStorage.getItem("@musicList");
+      if (savedMusic) {
+        setSearchResults(JSON.parse(savedMusic));
       }
     };
-    loadMusicList();
+
+    loadSavedMusic();
   }, []);
+
+  const navigateToAddMusicScreen = () => {
+    navigation.navigate("AddMusic");
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>🎶 My Music List</Text>
+      <Text style={styles.title}>Saved Music</Text>
+
+      {/* Exibe a lista de músicas salvas */}
       <FlatList
-        data={musicList}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => <Text style={styles.musicItem}>{item}</Text>}
+        data={searchResults}
+        keyExtractor={(item) => item.id ? item.id.toString() : item.nome_da_musica} // Verifica se 'id' existe
+        renderItem={({ item }) => (
+          <View style={styles.musicItem}>
+            <Text style={styles.musicText}>
+              {item.nome_da_musica} - {item.nome_do_artista}
+            </Text>
+          </View>
+        )}
       />
-      <Button title="Add Music" onPress={() => navigation.navigate("AddMusic")} />
+
+      {/* Botão para navegar para a tela de adicionar música */}
+      <Button title="Add Music" onPress={navigateToAddMusicScreen} />
     </View>
   );
 };
@@ -36,17 +47,22 @@ const HomeScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
   },
-  heading: {
+  title: {
     fontSize: 24,
     marginBottom: 20,
   },
   musicItem: {
+    padding: 10,
+    marginVertical: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  musicText: {
     fontSize: 18,
-    color: "#333",
-    marginVertical: 10,
   },
 });
 
